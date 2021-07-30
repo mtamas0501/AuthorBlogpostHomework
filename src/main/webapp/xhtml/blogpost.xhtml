@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+      xml:lang="en" lang="en">
+<h:head>
+    <title>BLOGPOST demo</title>
+</h:head>
+<body>
+<h:form id="form">
+    <p:growl id="growl" showDetail="false"/>
+
+    <p:toolbar>
+        <p:toolbarGroup id="functionGroup">
+            <p:commandButton id="add" icon="pi pi-plus" process="@this" value="Új hozzáadása"
+                             actionListener="#{blogPostCRUDMbean.initSave}" update="@([id$=blogPostForm])" oncomplete="PF('blogPostDialog').show()"/>
+
+            <p:commandButton disabled="#{blogPostCRUDMbean.selectedBlogPost.id==null}" id="delete" icon="pi pi-times"
+                             process="@this" value="Törlés"
+                             actionListener="#{blogPostCRUDMbean.remove(blogPostCRUDMbean.selectedBlogPost)}"
+                             update="@form">
+                <p:confirm header="Törlés" message="Biztos vagy benne?" icon="pi pi-times"/>
+            </p:commandButton>
+            <!-- Hákolt, de müködő megoldás @([id$=formPanel]) -->
+            <p:commandButton id="update" disabled="#{blogPostCRUDMbean.selectedBlogPost.id==null}" process="@this" value="Módosítás" icon="pi pi-pencil"
+                             oncomplete="PF('blogPostDialog').show()"
+                             actionListener="#{blogPostCRUDMbean.initEdit(blogPostCRUDMbean.selectedBlogPost)}" update="@([id$=formPanel])"/>
+        </p:toolbarGroup>
+
+
+
+        <p:toolbarGroup id="utilGroup" align="right">
+            <p:commandButton id="columntTogglerBtn" icon="pi pi-table"/>
+            <p:columnToggler trigger="columntTogglerBtn" datasource="table"/>
+
+
+            <p:commandButton value="XLS" styleClass="p-mr-2 p-mb-2">
+                <p:dataExporter type="xls" target="table" fileName="export"/>
+            </p:commandButton>
+
+            <p:commandButton value="XLXS" styleClass="p-mr-2 p-mb-2">
+                <p:dataExporter type="xlsxstream" target="table" fileName="export"/>
+            </p:commandButton>
+
+            <p:commandButton value="PDF" styleClass="p-mr-2 p-mb-2">
+                <p:dataExporter type="pdf" target="table" fileName="export"/>
+            </p:commandButton>
+
+            <p:commandButton value="CSV" styleClass="p-mr-2 p-mb-2">
+                <p:dataExporter type="csv" target="table" fileName="export" />
+            </p:commandButton>
+        </p:toolbarGroup>
+    </p:toolbar>
+
+
+
+
+    <p:dataTable id="table" value="#{blogPostCRUDMbean.list}" var="blogPost" rows="10"
+                 selectionMode="single" selection="#{blogPostCRUDMbean.selectedBlogPost}" rowKey="#{blogPost.id}"
+                 paginator="true"
+                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                 currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records"
+                 rowsPerPageTemplate="5,10,{ShowAll|'All'}">
+        <p:ajax event="rowSelect" update="@form"/>
+        <p:column toggleable="false" sortBy="#{blogPost.id}" filterBy="#{blogPost.id}" filterMatchMode="contains"
+                  headerText="ID">
+            <h:outputText value="#{blogPost.id}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.title}" filterBy="#{blogPost.title}" filterMatchMode="contains" headerText="Title">
+            <h:outputText value="#{blogPost.title}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.content}" filterBy="#{blogPost.content}" filterMatchMode="contains"
+                  headerText="Content">
+            <h:outputText value="#{blogPost.content}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.category}" filterBy="#{blogPost.category}" filterMatchMode="contains"
+                  headerText="Category">
+            <h:outputText value="#{blogPost.category}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.createdDate}" filterBy="#{blogPost.createdDate}" filterMatchMode="contains"
+                  headerText="Created Date">
+            <h:outputText value="#{blogPost.createdDate}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.lastModifiedDate}" filterBy="#{blogPost.lastModifiedDate}" filterMatchMode="contains"
+                  headerText="Last Modified Date">
+            <h:outputText value="#{blogPost.lastModifiedDate}"/>
+        </p:column>
+        <p:column sortBy="#{blogPost.publishedDate}" filterBy="#{blogPost.publishedDate}" filterMatchMode="contains"
+                  headerText="Publish Date">
+            <h:outputText value="#{blogPost.publishedDate}"/>
+        </p:column>
+
+    </p:dataTable>
+
+
+
+    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+        <p:commandButton value="Nem" type="button" styleClass="ui-confirmdialog-no ui-button-flat"/>
+        <p:commandButton value="Igen" type="button" styleClass="ui-confirmdialog-yes"/>
+    </p:confirmDialog>
+
+
+
+</h:form>
+
+
+
+<p:dialog id="blogPostDialog" widgetVar="blogPostDialog" header="Form" modal="true" closable="true">
+    <h:form id="blogPostForm">
+        <p:panelGrid layout="grid" columns="2" id="formPanel" style="width:400px"
+                     rendered="#{blogPostCRUDMbean.inFunction}">
+            <p:outputLabel value="Title"/>
+            <p:inputText required="true" requiredMessage="Title kötelező" value="#{blogPostCRUDMbean.selectedBlogPost.title}"/>
+
+            <p:outputLabel value="Content"/>
+            <p:inputText required="true" requiredMessage="Content kötelező" value="#{blogPostCRUDMbean.selectedBlogPost.content}"/>
+            <!--
+            <p:outputLabel value="Publish Date"/>
+            <p:inputText required="true" requiredMessage="Publish Date kötelező" value="#{blogPostCRUDMbean.selectedBlogPost.publishedDate}"/>
+            -->
+
+            <h:outputLabel for="CategoryType" value="Category" />
+            <h:selectOneMenu id="CategoryType" value="#{blogPostCRUDMbean.selectedBlogPost.category}" >
+                <f:selectItem itemLabel="SQL" itemValue="SQL" />
+                <f:selectItem itemLabel="JAVA" itemValue="JAVA" />
+                <f:selectItem itemLabel="MAVEN" itemValue="MAVEN" />
+            </h:selectOneMenu>
+
+
+            <p:outputLabel value="Publish Date"/>
+            <p:datePicker id="basic" value="#{blogPostCRUDMbean.selectedBlogPost.publishedDate}" showTime="true"/>
+
+            <p:commandButton value="Mentés" icon="pi pi-save" actionListener="#{blogPostCRUDMbean.save()}" process="formPanel" update=":form">
+            </p:commandButton>
+        </p:panelGrid>
+    </h:form>
+</p:dialog>
+</body>
+</html>
